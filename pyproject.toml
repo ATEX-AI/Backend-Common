@@ -3,14 +3,15 @@ requires = [
     "aio_pika",
     "pydantic",
     "sentry_sdk",
-    "aiohttp"
+    "aiohttp",
+    "redis"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "common"
 version = "0.0.1"
-description = "Short description"
+description = "Common utils for development in Atex llc"
 readme = "README.md"
 authors = [{ name = "Volodimir", email = "vovdyadjamalov@gmail.com" }]
 requires-python = ">=3.10"
@@ -19,6 +20,7 @@ dependencies = [
     "pydantic==2.10.6",
     "sentry_sdk",
     "aiohttp==3.11.14",
+    "redis==5.2.1"
 ]
 
 [project.urls]

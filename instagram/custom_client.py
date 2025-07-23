@@ -5,8 +5,8 @@ from typing import Callable, Awaitable, Optional
 import aiohttp
 from urllib.parse import urlencode
 
-from instagram.schemas import Message
-from instagram.logger import logger
+from common.instagram.schemas import Message
+from common.instagram.logger import logger
 
 
 class IntagramClient:

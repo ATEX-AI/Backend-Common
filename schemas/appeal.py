@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from schemas.user import UserBase
+from common.schemas.user import UserBase
 
 
 class AppealPeriodFilterOption(str, Enum):

@@ -7,7 +7,7 @@ from typing import Dict, List, Set, Type, Optional
 from redis.asyncio import Redis
 from redis.asyncio.client import PubSub
 
-from redis.pubsub import (
+from common.redis.pubsub import (
     _EventRegistry,
     BaseEventType,
     ConnectionLike,

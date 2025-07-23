@@ -2,7 +2,7 @@ from typing import Any
 
 from redis.asyncio import Redis
 
-from redis.pubsub import BaseEventType, EventPayload
+from common.redis.pubsub import BaseEventType, EventPayload
 
 
 class EventPublisher:
