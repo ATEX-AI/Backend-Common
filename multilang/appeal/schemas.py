@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict
 
-from common.multilang.schemas import Language
+from multilang.schemas import Language
 
 
 @dataclass(frozen=True)

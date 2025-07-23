@@ -4,7 +4,7 @@ import logging
 
 from aio_pika import connect_robust, Connection, Channel, Queue
 
-from common.brokers.tasks.schema import Task
+from brokers.tasks.schema import Task
 
 
 # logger = logging.getLogger(__file__)

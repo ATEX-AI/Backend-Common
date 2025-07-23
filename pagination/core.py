@@ -4,7 +4,7 @@ from typing import Callable, Type
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.pagination.schemas import LimitOffsetPaginatedResponse, PagePaginatedResponse
+from pagination.schemas import LimitOffsetPaginatedResponse, PagePaginatedResponse
 
 
 logger = logging.getLogger(__name__)
