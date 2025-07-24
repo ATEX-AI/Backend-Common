@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import Enum
 
 from pydantic import BaseModel
@@ -20,3 +21,14 @@ class InfoFlowBase(BaseModel):
     avatar: str | None = None
     name: str | None
     type: InfoFlowType
+
+
+class InfoFlowTechData(BaseModel):
+    token: Optional[str] = None
+    greeting: Optional[str] = None
+    description: Optional[str] = None
+
+
+class InfoFlowVisibleTechData(BaseModel):
+    greeting: Optional[str] = None
+    description: Optional[str] = None
