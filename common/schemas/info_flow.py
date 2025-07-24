@@ -1,7 +1,7 @@
 from typing import Optional
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class InfoFlowType(str, Enum):
@@ -28,7 +28,11 @@ class InfoFlowTechData(BaseModel):
     greeting: Optional[str] = None
     description: Optional[str] = None
 
+    model_config = ConfigDict(from_attributes=True, extra="allow")
+
 
 class InfoFlowVisibleTechData(BaseModel):
     greeting: Optional[str] = None
     description: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
