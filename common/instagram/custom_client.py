@@ -49,14 +49,15 @@ class IntagramClient:
             return None
 
     async def _subscribe_to_instagram_app(
-        self, app_id, access_token: str
+        self, ig_id, access_token: str
     ) -> str:
-        url = f"{self._base_url}v23.0/{app_id}/subscribed_apps?subscribed_fields=messages&access_token={access_token}"
+        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?subscribed_fields=messages&access_token={access_token}"
         try:
             async with self("POST", url) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return True
+            
         except Exception as e:
             logger.exception(f"Error during subscription to app: {e}")
             return False
