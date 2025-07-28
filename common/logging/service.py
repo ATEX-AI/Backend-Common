@@ -18,7 +18,7 @@ def get_log_level() -> str:
     return os.getenv("LOG_LEVEL", "INFO").upper()
 
 
-def build_log_config(_logger_name: str, _log_level: str, _version: Union[str, int]):
+def build_log_config(_logger_name: str, _log_level: str, _version: Union[str, int] = 1):
     return {
         "version": _version,
         "disable_existing_loggers": False,
