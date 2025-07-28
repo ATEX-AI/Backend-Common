@@ -9,8 +9,7 @@ from types import TracebackType
 
 def get_logger_name(logger_name: str = None, env: str = None) -> str:
     return (
-        f"{logger_name or os.getenv('LOGGER_NAME', 'service')}"
-        f"_{env or os.getenv('ENVIRONMENT', 'local')}"
+        f"{logger_name or os.getenv('LOGGER_NAME', 'service')}_{env or os.getenv('ENVIRONMENT', 'local')}"
     )
 
 
@@ -50,7 +49,7 @@ def build_log_config(_logger_name: str, _log_level: str, _version: Union[str, in
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 LOG_LEVEL = get_log_level()
-LOGGER_NAME = get_logger_name(ENVIRONMENT)
+LOGGER_NAME = get_logger_name(env=ENVIRONMENT)
 
 
 LOG_CONFIG = build_log_config(LOGGER_NAME, LOG_LEVEL)
