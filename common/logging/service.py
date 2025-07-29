@@ -7,9 +7,9 @@ from typing import Union
 from types import TracebackType
 
 
-def get_logger_name(logger_name: str = None, env: str = None) -> str:
+def get_logger_name(service_name: str = None, env: str = None) -> str:
     return (
-        f"{logger_name or os.getenv('LOGGER_NAME', 'service')}_{env or os.getenv('ENVIRONMENT', 'local')}"
+        f"{env or os.getenv('ENVIRONMENT', 'local')}_{service_name or os.getenv('SERVICE_NAME', 'service')}"
     )
 
 
