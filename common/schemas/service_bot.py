@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import List, Union
+from typing import List, Union, Optional
 from decimal import Decimal
 from uuid import UUID
 from enum import Enum
@@ -17,14 +17,15 @@ class ServiceBotStatsTypes(str, Enum):
 
 
 class ServiceBotBase(BaseModel):
-    id: int
-    uuid_id: UUID
-    prompt: str
-    talkativeness: Decimal
-    temperature: Decimal
-    timezone: str
-    settings: Union[List, dict, None]
-    name: Union[str, None]
-    avatar: Union[str, None]
+    id: Optional[int] = None
+    uuid_id: Optional[UUID] = None
+    company_id: Optional[int] = None
+    prompt: Optional[str] = None
+    talkativeness: Optional[Decimal] = None
+    temperature: Optional[Decimal] = None
+    timezone: Optional[str] = None
+    settings: Union[List, dict, None] = None
+    name: Optional[str] = None
+    avatar: Optional[str] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

@@ -1,7 +1,8 @@
 from enum import Enum
+from typing import Union
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from common.schemas.user import UserBase
 
@@ -37,7 +38,9 @@ class AppealBase(BaseModel):
     status: AppealStatus
     needs_an_operator: bool
     unread_messages_cnt: int
-    operator: int | None
+    operator: Union[int, None] = None
+    
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class AppealDetails(BaseModel):
@@ -50,9 +53,10 @@ class AppealDetails(BaseModel):
     unread_messages_cnt: int
     operator: UserBase
     client: UserBase
-    is_ruled_by_bot: bool | None
-    creation_date: datetime | None
-    last_message_date: datetime | None
-    closing_date: datetime | None
-    chat_type: str | None
+    is_ruled_by_bot: Union[bool, None] = None
+    creation_date: Union[datetime, None] = None
+    last_message_date: Union[datetime, None] = None
+    closing_date: Union[datetime, None] = None
+    chat_type: Union[str, None] = None
 
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

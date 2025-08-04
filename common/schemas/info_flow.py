@@ -21,6 +21,8 @@ class InfoFlowBase(BaseModel):
     avatar: str | None = None
     name: str | None
     type: InfoFlowType
+    
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
 class InfoFlowTechData(BaseModel):

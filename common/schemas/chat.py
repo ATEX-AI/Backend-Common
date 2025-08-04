@@ -3,7 +3,7 @@ from typing import Union
 
 from pydantic import BaseModel
 
-from common.schemas.info_flow import InfoFlowType
+from common.schemas.info_flow import InfoFlowType, ConfigDict
 
 
 class ChatBase(BaseModel):
@@ -14,3 +14,5 @@ class ChatBase(BaseModel):
     is_blocked: bool
     type: InfoFlowType
     meta: Union[dict, None] = None
+
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class InfoFlowProcessStatus(str, Enum):
@@ -21,3 +21,5 @@ class InfoFlowProcessBase(BaseModel):
     process_ping_time: datetime
     process_status: InfoFlowProcessStatus
     running_mode: str
+    
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

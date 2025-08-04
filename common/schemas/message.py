@@ -2,7 +2,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # ==== Message ==== #
 
@@ -19,3 +19,5 @@ class MessageBase(BaseModel):
     type: MessageType
     date: datetime
     message: str
+    
+    model_config = ConfigDict(from_attributes=True, extra="ignore")

@@ -1,7 +1,7 @@
-from typing import List, Optional
+from typing import Optional
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserType(str, Enum):
@@ -21,3 +21,5 @@ class UserBase(BaseModel):
     name: Optional[str] = None
     username: Optional[str] = None
     avatar: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
