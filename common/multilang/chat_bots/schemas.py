@@ -26,4 +26,4 @@ class UnsupportedMessageType(Enum):
 
 
 class InternalError(Enum):
-    rus = "Internal error. Please try again."
+    rus = "⚠️ Внутренняя ошибка! Попробуйте позже"
