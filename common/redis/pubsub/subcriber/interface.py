@@ -145,7 +145,7 @@ class EventSubscriber(_EventRegistry):
                 )
                 payload = self._events_payload_cls.model_validate(raw)
             except Exception as e:
-                self._logger.exception("raw_data: %s; conv_err: %s", raw, e)
+                self._logger.warning("raw_data: %s; conv_err: %s", raw, e)
                 continue
 
             if not self._is_registered(payload.event):

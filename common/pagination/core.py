@@ -153,7 +153,7 @@ class PaginationManager:
                 validated_item = item_class.model_validate(item_dict)
                 results.append(validated_item)
             except Exception as e:
-                logger.exception("Error validating item %s: %s", item_dict, e)
+                logger.warning("Error validating item %s: %s", item_dict, e)
                 continue
 
         return response_class(

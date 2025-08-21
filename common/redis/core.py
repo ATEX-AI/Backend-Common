@@ -12,7 +12,7 @@ def create_redis_pool(
         pool = redis.ConnectionPool.from_url(connection_url)
         return redis.Redis(connection_pool=pool)
     except Exception as e:
-        logger.exception(f"An error occurred when trying to create a new pool: {e}")
+        logger.warning(f"An error occurred when trying to create a new pool: {e}")
         raise
 
 

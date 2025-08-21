@@ -45,7 +45,7 @@ class IntagramClient:
                 data = await response.json()
                 return data.get("access_token")
         except Exception as e:
-            logger.exception("Error exchanging auth code for access token: %s", e)
+            logger.warning("Error exchanging auth code for access token: %s", e)
             return None
 
     async def _subscribe_to_instagram_app(
@@ -59,7 +59,7 @@ class IntagramClient:
                 return True
             
         except Exception as e:
-            logger.exception(f"Error during subscription to app: {e}")
+            logger.warning(f"Error during subscription to app: {e}")
             return False
         
     async def _exchange_for_long_lived_token_display(
@@ -78,7 +78,7 @@ class IntagramClient:
                 return data.get("access_token")
             
         except Exception as e:
-            logger.exception(
+            logger.warning(
                 "Error exchanging Display token for long-lived token: %s", e
             )
             return None
@@ -90,7 +90,7 @@ class IntagramClient:
                 data = await response.json()
                 return data.get("access_token")
         except Exception as e:
-            logger.exception("Error during attempt to get info about user:%s", e)
+            logger.warning("Error during attempt to get info about user:%s", e)
             return {}
 
     async def _get_ig_user_info(self, user_id: str, access_token: str) -> dict:
@@ -100,7 +100,7 @@ class IntagramClient:
                 data = await response.json()
                 return data
         except Exception as e:
-            logger.exception("Error during attempt to get info about user:%s", e)
+            logger.warning("Error during attempt to get info about user:%s", e)
             return {}
 
     async def _get_ig_user_id(self, access_token: str) -> Optional[str]:
@@ -124,7 +124,7 @@ class IntagramClient:
                 return data.get("id")
 
         except Exception as e:
-            logger.exception("Error during attempt to get essential info for ig:%s", e)
+            logger.warning("Error during attempt to get essential info for ig:%s", e)
             return None
 
     async def send_message(
@@ -161,7 +161,7 @@ class IntagramClient:
                 response.raise_for_status()
 
         except Exception as e:
-            logger.exception(
+            logger.warning(
                 "erorr during attemt to send message by ig %s, reponse:%s", e, output
             )
             return None

@@ -28,7 +28,7 @@ class ProducerBasicInterface:
             await self.close()
 
         except Exception as e:
-            self._logger.exception(f"Error during closing {self._broker_host_url} connection: {e}")
+            self._logger.warning(f"Error during closing {self._broker_host_url} connection: {e}")
 
         retry_delay = 2
         while not self.has_connection and not self.has_channel:
@@ -37,7 +37,7 @@ class ProducerBasicInterface:
                 self.__channel = await self.__connection.channel()
 
             except Exception as e:
-                self._logger.exception(f"Error during {self._broker_host_url} connection: {e}")
+                self._logger.warning(f"Error during {self._broker_host_url} connection: {e}")
                 await asyncio.sleep(retry_delay)
 
     async def send_task(self, worker: str, task_payload: dict):

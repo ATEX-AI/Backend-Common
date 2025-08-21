@@ -62,7 +62,7 @@ class ConsumerBasicInterface:
                     self._queue_name, durable=True
                 )
             except Exception as exc:
-                self._logger.exception(f"Error during {self._broker_host_url} connection: {exc}")
+                self._logger.warning(f"Error during {self._broker_host_url} connection: {exc}")
                 await asyncio.sleep(self.RECONNECT_DELAY)
 
     async def get_messages(self):
@@ -95,7 +95,7 @@ class ConsumerBasicInterface:
                                 ...
 
             except Exception as e:
-                self._logger.exception("error during messages receiving %s", e)
+                self._logger.warning("error during messages receiving %s", e)
                 await self.close()
 
             await asyncio.sleep(1.0)
