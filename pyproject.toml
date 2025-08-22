@@ -14,7 +14,7 @@ dependencies = [
     "pydantic==2.10.6",
     "sentry_sdk",
     "aiohttp==3.11.14",
-    "redis==5.2.1"
+    "redis==6.4.0"
 ]
 
 [project.urls]
