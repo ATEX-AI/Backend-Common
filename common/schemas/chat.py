@@ -7,11 +7,11 @@ from common.schemas.info_flow import InfoFlowType, ConfigDict
 
 
 class ChatMetaData(BaseModel):
-    username: str | None = None
-    chat_id: str | None = None
-    chat_type: str | None = None
-    name: str | None = None
-    avatar: str | None = None
+    username: int | str | None = None
+    chat_id: int | str | None = None
+    chat_type: int | str | None = None
+    name: int | str | None = None
+    avatar: int | str | None = None
 
     model_config = ConfigDict(from_attributes=True, extra="allow")
 
