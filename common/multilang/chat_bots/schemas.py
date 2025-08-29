@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class OperatorSwitchText(Enum):
-    rus = "Ожидайте, соединяю вас с оператором"
+    rus = "Ожидайте, соединяю вас с оператором.\nKutib turing, siz operator bilan bog‘lanmoqdasiz."
 
 
 class TranscribedTextFailed(Enum):
