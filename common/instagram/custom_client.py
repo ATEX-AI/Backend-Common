@@ -51,7 +51,7 @@ class IntagramClient:
     async def _unsubscribe_from_instagram_app(
         self, ig_id, access_token: str
     ) -> str:
-        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?subscribed_fields=messages&access_token={access_token}"
+        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?access_token={access_token}"
         try:
             async with self("DELETE", url) as response:
                 response.raise_for_status()
@@ -65,7 +65,7 @@ class IntagramClient:
     async def _subscribe_to_instagram_app(
         self, ig_id, access_token: str
     ) -> str:
-        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?subscribed_fields=messages&access_token={access_token}"
+        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?subscribed_fields=message_echoes,message_edits,message_reactions,messages&access_token={access_token}"
         try:
             async with self("POST", url) as response:
                 response.raise_for_status()
