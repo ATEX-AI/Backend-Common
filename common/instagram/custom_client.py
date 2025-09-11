@@ -47,35 +47,37 @@ class IntagramClient:
         except Exception as e:
             logger.warning("Error exchanging auth code for access token: %s", e)
             return None
-        
-    async def _unsubscribe_from_instagram_app(
-        self, ig_id, access_token: str
-    ) -> str:
-        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?access_token={access_token}"
+
+    async def _unsubscribe_from_instagram_app(self, ig_id, access_token: str) -> str:
+        url = (
+            f"{self._base_url}v23.0/{ig_id}/subscribed_apps?access_token={access_token}"
+        )
         try:
             async with self("DELETE", url) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return True
-            
+
         except Exception as e:
             logger.warning(f"Error during subscription to app: {e}")
             return False
 
-    async def _subscribe_to_instagram_app(
-        self, ig_id, access_token: str
-    ) -> str:
-        url = f"{self._base_url}v23.0/{ig_id}/subscribed_apps?subscribed_fields=message_echoes,message_edits,message_reactions,messages&access_token={access_token}"
+    async def _subscribe_to_instagram_app(self, ig_id, access_token: str) -> str:
+        url = (
+            f"{self._base_url}v23.0/{ig_id}/subscribed_apps"
+            f"?subscribed_fields=message_echoes,message_reactions,messaging_referral,messaging_postbacks,standby,messages"
+            f"&access_token={access_token}"
+        )
         try:
             async with self("POST", url) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return True
-            
+
         except Exception as e:
             logger.warning(f"Error during subscription to app: {e}")
             return False
-        
+
     async def _exchange_for_long_lived_token_display(
         self, short_lived_token: str, app_secret: str
     ) -> str | None:
@@ -90,11 +92,9 @@ class IntagramClient:
                 response.raise_for_status()
                 data = await response.json()
                 return data.get("access_token")
-            
+
         except Exception as e:
-            logger.warning(
-                "Error exchanging Display token for long-lived token: %s", e
-            )
+            logger.warning("Error exchanging Display token for long-lived token: %s", e)
             return None
 
     async def _get_new_access_token(self, access_token: str):
