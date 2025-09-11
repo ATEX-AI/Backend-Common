@@ -65,7 +65,7 @@ class IntagramClient:
     async def _subscribe_to_instagram_app(self, ig_id, access_token: str) -> str:
         url = (
             f"{self._base_url}v23.0/{ig_id}/subscribed_apps"
-            f"?subscribed_fields=message_echoes,message_reactions,messaging_referral,messaging_postbacks,standby,messages"
+            f"?subscribed_fields=message_reactions,messages,messaging_handover,messaging_optins,messaging_postbacks,messaging_referral,messaging_seen,standby"
             f"&access_token={access_token}"
         )
         try:
