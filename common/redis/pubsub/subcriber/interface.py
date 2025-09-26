@@ -130,10 +130,8 @@ class EventSubscriber(_EventRegistry):
             if msg.get("type") != "pmessage":
                 continue
 
-            if not msg.get("channel"):
-                continue
-
             if msg.get("destination") != "ws_event":
+                self._logger.warning("skipped: %s", msg)
                 continue
 
             channel: str = (
