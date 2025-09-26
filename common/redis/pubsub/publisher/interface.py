@@ -22,4 +22,6 @@ class EventPublisher:
         await self._redis.publish(channel, payload)
 
     async def publish_payload(self, *, channel: str, payload: EventPayload) -> None:
-        await self._redis.publish(channel, payload.model_dump_json())
+        payload = payload.model_dump_json()
+        payload["destination"] = "ws_event"
+        await self._redis.publish(channel, payload)

@@ -59,7 +59,7 @@ class EventSubscriber(_EventRegistry):
         for ws_set in self._sessions.values():
             for ws in ws_set:
                 coros.append(
-                    asyncio.create_task(self._safe_close(ws, 10001,"Server shutdown" ))
+                    asyncio.create_task(self._safe_close(ws, 10001, "Server shutdown"))
                 )
         if coros:
             await asyncio.gather(*coros, return_exceptions=True)
@@ -127,7 +127,13 @@ class EventSubscriber(_EventRegistry):
     async def _listen(self) -> None:
         assert self._pubsub is not None
         async for msg in self._pubsub.listen():
-            if msg["type"] != "pmessage":
+            if msg.get("type") != "pmessage":
+                continue
+
+            if not msg.get("channel"):
+                continue
+
+            if msg.get("destination") != "ws_event":
                 continue
 
             channel: str = (
