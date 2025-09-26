@@ -130,11 +130,6 @@ class EventSubscriber(_EventRegistry):
             if msg.get("type") != "pmessage":
                 continue
 
-            if msg.get("destination") != "ws_event":
-                continue
-            
-            self._logger.warning("accepted: %s", msg)
-
             channel: str = (
                 msg["channel"].decode()
                 if isinstance(msg["channel"], bytes)
@@ -142,6 +137,7 @@ class EventSubscriber(_EventRegistry):
             )
 
             raw_txt = msg.get("data")
+            self._logger.warning("accepted: %s", raw_txt)
             try:
                 raw = json.loads(
                     raw_txt.decode()
