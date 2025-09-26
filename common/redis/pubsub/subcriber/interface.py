@@ -131,8 +131,9 @@ class EventSubscriber(_EventRegistry):
                 continue
 
             if msg.get("destination") != "ws_event":
-                self._logger.warning("skipped: %s", msg)
                 continue
+            
+            self._logger.warning("accepted: %s", msg)
 
             channel: str = (
                 msg["channel"].decode()
