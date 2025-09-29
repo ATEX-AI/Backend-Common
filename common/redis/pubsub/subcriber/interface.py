@@ -137,13 +137,16 @@ class EventSubscriber(_EventRegistry):
             )
 
             raw_txt = msg.get("data")
-            self._logger.info("accepted: %s", raw_txt)
             try:
                 raw = json.loads(
                     raw_txt.decode()
                     if isinstance(raw_txt, (bytes, bytearray))
                     else raw_txt
                 )
+
+                if not isinstance(raw, dict) or raw.get("destination") != "ws_event":
+                    continue
+
                 payload = self._events_payload_cls.model_validate(raw)
             except Exception as e:
                 self._logger.warning("raw_data: %s; conv_err: %s", raw, e)
