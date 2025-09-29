@@ -10,6 +10,7 @@ class BaseEventType(str, Enum):
 
 
 class EventPayload(BaseModel):
+    destination: str = "ws_event"
     event: BaseEventType
     data: Dict[str, Any]
 

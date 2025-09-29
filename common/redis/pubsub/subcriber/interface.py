@@ -137,7 +137,7 @@ class EventSubscriber(_EventRegistry):
             )
 
             raw_txt = msg.get("data")
-            self._logger.warning("accepted: %s", raw_txt)
+            self._logger.info("accepted: %s", raw_txt)
             try:
                 raw = json.loads(
                     raw_txt.decode()
