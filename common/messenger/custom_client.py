@@ -71,7 +71,7 @@ class MessengerClient:
             return None
 
     async def _get_page_access_token_from_user_token(
-        self, page_id: str, user_access_token: str, app_secret: str
+        self, page_id:str, user_access_token: str, app_secret: str
     ) -> Optional[str]:
         h = hmac.new(
             app_secret.encode("utf-8"),
@@ -80,17 +80,26 @@ class MessengerClient:
         )
         appsecret_proof = h.hexdigest()
         url = (
-            f"{self._base_url}{self._api_version}/{page_id}"
+            f"{self._base_url}{self._api_version}/me/accounts"
             f"?fields=access_token&access_token={user_access_token}"
             f"&appsecret_proof={appsecret_proof}"
         )
+        
         try:
             async with self("GET", url) as response:
                 response.raise_for_status()
                 data = await response.json()
-                return data.get("access_token")
+                logger.info(f"Account data: {data}")
+                for page in data.get("data", []):
+                    if page.get("id") != page_id:
+                        continue
+                    return page.get("access_token")
+                        
+                logger.warning(f"Page ID <{page_id}> not found in user's managed accounts")
+                return None
+                
         except Exception as e:
-            logger.warning("Error fetching Page Access Token: %s", e)
+            logger.warning(f"Error fetching Page Access Token: {e}")
             return None
 
     async def _subscribe_to_messenger_app(
