@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 class InfoFlowType(str, Enum):
     telegram = "telegram"
     instagram = "instagram"
+    MESSENGER = "messenger"
 
 
 class InfloFlowStatus(str, Enum):

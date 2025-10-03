@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "common"
-version = "0.0.26"
+version = "0.0.29"
 description = "Common utils for development in Atex llc"
 readme = "README.md"
-authors = [{ name = "Volodimir", email = "vovdyadjamalov@gmail.com" }]
+authors = [{ name = "Vladimir", email = "vovdyadjamalov@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "aio_pika==9.5.5",
