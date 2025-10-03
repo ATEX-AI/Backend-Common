@@ -82,7 +82,7 @@ class MessengerClient:
         url = (
             f"{self._base_url}{self._api_version}/{page_id}"
             f"?fields=access_token&access_token={user_access_token}"
-            f"&appsecret_proof{appsecret_proof}"
+            f"&appsecret_proof={appsecret_proof}"
         )
         try:
             async with self("GET", url) as response:
