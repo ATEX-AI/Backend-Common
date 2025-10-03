@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Callable, Awaitable, Optional
@@ -28,7 +30,6 @@ class MessengerClient:
         async with self._async_sessions_factory() as session:
             async with session.request(method, url, **kwargs) as response:
                 yield response
-
 
     async def _get_user_access_token_from_oauth(
         self, auth_code: str, app_id: str, app_secret: str, redirect_url: str
@@ -70,11 +71,18 @@ class MessengerClient:
             return None
 
     async def _get_page_access_token_from_user_token(
-        self, page_id: str, user_access_token: str
+        self, page_id: str, user_access_token: str, app_secret: str
     ) -> Optional[str]:
+        h = hmac.new(
+            app_secret.encode("utf-8"),
+            msg=user_access_token.encode("utf-8"),
+            digestmod=hashlib.sha256,
+        )
+        appsecret_proof = h.hexdigest()
         url = (
             f"{self._base_url}{self._api_version}/{page_id}"
             f"?fields=access_token&access_token={user_access_token}"
+            f"&appsecret_proof{appsecret_proof}"
         )
         try:
             async with self("GET", url) as response:
@@ -85,7 +93,9 @@ class MessengerClient:
             logger.warning("Error fetching Page Access Token: %s", e)
             return None
 
-    async def _subscribe_to_messenger_app(self, page_id: str, page_access_token: str) -> bool:
+    async def _subscribe_to_messenger_app(
+        self, page_id: str, page_access_token: str
+    ) -> bool:
         subscribed_fields = ",".join(
             [
                 "messages",
@@ -116,7 +126,9 @@ class MessengerClient:
             logger.warning("Error during subscription to Messenger app: %s", e)
             return False
 
-    async def _unsubscribe_from_messenger_app(self, page_id: str, page_access_token: str) -> bool:
+    async def _unsubscribe_from_messenger_app(
+        self, page_id: str, page_access_token: str
+    ) -> bool:
         url = (
             f"{self._base_url}{self._api_version}/{page_id}/subscribed_apps"
             f"?access_token={page_access_token}"
@@ -179,11 +191,15 @@ class MessengerClient:
 
         output = None
         try:
-            async with self("POST", url, json=payload, headers=headers, timeout=timeout) as response:
+            async with self(
+                "POST", url, json=payload, headers=headers, timeout=timeout
+            ) as response:
                 output = await response.json()
                 response.raise_for_status()
         except Exception as e:
-            logger.warning("Error attempting to send Messenger message %s, response: %s", e, output)
+            logger.warning(
+                "Error attempting to send Messenger message %s, response: %s", e, output
+            )
             return None
 
         return Message(
