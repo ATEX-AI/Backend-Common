@@ -2,7 +2,7 @@ import json
 import asyncio
 import logging
 
-from aio_pika import connect_robust, Connection, Channel, Queue
+from aio_pika import connect_robust, Connection, Channel, Queue, ExchangeType, Message
 
 from common.brokers.tasks.schema import Task
 
@@ -37,11 +37,8 @@ class ConsumerBasicInterface:
         self._lock = asyncio.Lock()
 
     async def close(self) -> None:
-        """
-        Close the channel and the connection to RabbitMQ.
-        """
         self._stopped = True
-        
+
         if self._channel and not self._channel.is_closed:
             await self._channel.close()
 
@@ -49,26 +46,21 @@ class ConsumerBasicInterface:
             await self._connection.close()
 
     async def connect(self) -> None:
-        """
-        Create a robust connection and channel if we don't have one already.
-        Retries if connection fails.
-        """
         while not self.has_connection and not self._stopped:
             try:
                 self._connection = await connect_robust(self._broker_host_url)
                 self._channel = await self._connection.channel()
-                await self._channel.set_qos(prefetch_count=self._prefetch_count)
+                await self._channel.set_qos(
+                    prefetch_count=self._prefetch_count)
                 self._queue = await self._channel.declare_queue(
                     self._queue_name, durable=True
                 )
             except Exception as exc:
-                self._logger.warning(f"Error during {self._broker_host_url} connection: {exc}")
+                self._logger.warning(
+                    f"Error during {self._broker_host_url} connection: {exc}")
                 await asyncio.sleep(self.RECONNECT_DELAY)
 
     async def get_messages(self):
-        """
-        Async generator that yields messages as Task objects, with automatic reconnection.
-        """
         while not self._stopped:
             await self.connect()
             if not self._channel or self._channel.is_closed:
@@ -88,14 +80,19 @@ class ConsumerBasicInterface:
                         async with message.process():
                             try:
                                 raw_str = message.body.decode("utf-8")
-                                inner_json_str = json.loads(raw_str)
-                                task_dict = json.loads(inner_json_str)
+                                payload = json.loads(raw_str)
+
+                                if isinstance(payload, str):
+                                    task_dict = json.loads(payload)
+                                else:
+                                    task_dict = payload
+
                                 yield Task(**task_dict)
                             except json.JSONDecodeError as e:
-                                ...
+                                self._logger.error(f"JSON decode error: {e}")
 
             except Exception as e:
-                self._logger.warning("error during messages receiving %s", e)
+                self._logger.warning("Error during messages receiving %s", e)
                 await self.close()
 
             await asyncio.sleep(1.0)

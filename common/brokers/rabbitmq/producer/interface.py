@@ -10,7 +10,9 @@ class ProducerBasicInterface:
         self._broker_host_url = broker_host_url
         self.__connection = None
         self.__channel = None
+        self._exchange = None
         self._logger = logger
+        self._lock = asyncio.Lock()
 
     @property
     def has_connection(self) -> bool:
@@ -21,50 +23,59 @@ class ProducerBasicInterface:
         return self.__channel is not None and not self.__channel.is_closed
 
     async def connect(self) -> None:
-        if self.has_connection and self.has_channel:
-            return
-        
-        try:
-            await self.close()
+        async with self._lock:
+            if self.has_connection and self.has_channel:
+                return
 
-        except Exception as e:
-            self._logger.warning(f"Error during closing {self._broker_host_url} connection: {e}")
+            try:
+                if self.__connection:
+                    await self.close()
+            except Exception:
+                pass
 
-        retry_delay = 2
-        while not self.has_connection and not self.has_channel:
             try:
                 self.__connection = await connect_robust(self._broker_host_url)
                 self.__channel = await self.__connection.channel()
-
+                self._exchange = await self.__channel.declare_exchange(
+                    "DirectExchange", ExchangeType.DIRECT, durable=True
+                )
             except Exception as e:
                 self._logger.warning(f"Error during {self._broker_host_url} connection: {e}")
-                await asyncio.sleep(retry_delay)
+                self.__connection = None
+                self.__channel = None
+                self._exchange = None
 
     async def send_task(self, worker: str, task_payload: dict):
-        if not (self.has_connection and self.has_channel):
+        if not (self.has_connection and self.has_channel and self._exchange):
             await self.connect()
-        else:
-            if self.__channel and not self.__channel.is_closed:
+
+        if not self.__channel:
+            self._logger.error("Failed to establish connection, cannot send message")
+            return
+
+        try:
+            queue = await self.__channel.declare_queue(name=worker, durable=True)
+            await queue.bind(self._exchange, routing_key=worker)
+
+            message = Message(
+                body=json.dumps(task_payload).encode("utf-8"),
+                content_type="application/json",
+                delivery_mode=2
+            )
+
+            await self._exchange.publish(message, routing_key=worker)
+
+        except Exception as e:
+            self._logger.error(f"Failed to send task: {e}")
+            try:
                 await self.__channel.close()
-
-        self.__channel = await self.__connection.channel()
-
-        exchange = await self.__channel.declare_exchange(
-            "DirectExchange", ExchangeType.DIRECT
-        )
-        queue = await self.__channel.declare_queue(name=worker, durable=True)
-        await queue.bind(exchange, routing_key=worker)
-
-        message = Message(
-            body=json.dumps(task_payload).encode("utf-8"),
-            content_type="application/json",
-        )
-
-        await exchange.publish(message, routing_key=worker)
+            except Exception:
+                pass
+            self.__channel = None
 
     async def close(self):
         if self.__connection:
             await self.__connection.close()
-
-        if self.__channel:
-            await self.__channel.close()
+            self.__connection = None
+            self.__channel = None
+            self._exchange = None
