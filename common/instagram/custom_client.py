@@ -14,7 +14,7 @@ _MAX_RETRIES = 3
 _BASE_DELAY = 0.5  # seconds, doubles each retry (0.5 → 1.0 → 2.0)
 
 
-class IntagramClient:
+class InstagramClient:
 
     __allowed_methods = ["GET", "POST", "PATCH", "DELETE"]
 
@@ -239,3 +239,7 @@ class IntagramClient:
 
     def get_session_factory(self):
         return self._async_sessions_factory
+
+
+# Backward-compatible alias — will be removed in next major version
+IntagramClient = InstagramClient

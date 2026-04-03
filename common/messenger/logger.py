@@ -34,7 +34,7 @@ LOG_CONFIG = {
 
 
 logging.config.dictConfig(LOG_CONFIG)
-logger = logging.getLogger("instagram_service")
+logger = logging.getLogger("messenger_service")
 
 
 def except_logging(
