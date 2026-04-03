@@ -2,12 +2,10 @@ import json
 import asyncio
 import logging
 
-from aio_pika import connect_robust, Connection, Channel, Queue, ExchangeType, Message
+from aio_pika import Channel, Queue
 
+from common.brokers.rabbitmq.connection_pool import ConnectionPool
 from common.brokers.tasks.schema import Task
-
-
-# logger = logging.getLogger(__file__)
 
 
 class ConsumerBasicInterface:
@@ -17,7 +15,6 @@ class ConsumerBasicInterface:
         self._broker_host_url = broker_host_url
         self._queue_name = queue_name
         self._prefetch_count = prefetch_count
-        self._connection: Connection | None = None
         self._channel: Channel | None = None
         self._queue: Queue | None = None
         self._stopped = False
@@ -25,7 +22,7 @@ class ConsumerBasicInterface:
 
     @property
     def has_connection(self) -> bool:
-        return self._connection is not None and not self._connection.is_closed
+        return self._channel is not None and not self._channel.is_closed
 
     def __getstate__(self):
         st = self.__dict__.copy()
@@ -40,24 +37,29 @@ class ConsumerBasicInterface:
         self._stopped = True
 
         if self._channel and not self._channel.is_closed:
-            await self._channel.close()
-
-        if self._connection and not self._connection.is_closed:
-            await self._connection.close()
+            try:
+                await self._channel.close()
+            except Exception:
+                pass
+            self._channel = None
+            self._queue = None
 
     async def connect(self) -> None:
+        """Acquire a channel from the shared connection pool."""
         while not self.has_connection and not self._stopped:
             try:
-                self._connection = await connect_robust(self._broker_host_url)
-                self._channel = await self._connection.channel()
-                await self._channel.set_qos(
-                    prefetch_count=self._prefetch_count)
+                pool = await ConnectionPool.get_instance(self._broker_host_url)
+                self._channel = await pool.acquire_channel(
+                    prefetch_count=self._prefetch_count,
+                )
                 self._queue = await self._channel.declare_queue(
                     self._queue_name, durable=True
                 )
             except Exception as exc:
                 self._logger.warning(
                     f"Error during {self._broker_host_url} connection: {exc}")
+                self._channel = None
+                self._queue = None
                 await asyncio.sleep(self.RECONNECT_DELAY)
 
     async def get_messages(self):
@@ -93,6 +95,13 @@ class ConsumerBasicInterface:
 
             except Exception as e:
                 self._logger.warning("Error during messages receiving %s", e)
-                await self.close()
+                # Only close the channel, not the shared connection
+                if self._channel and not self._channel.is_closed:
+                    try:
+                        await self._channel.close()
+                    except Exception:
+                        pass
+                self._channel = None
+                self._queue = None
 
             await asyncio.sleep(1.0)
