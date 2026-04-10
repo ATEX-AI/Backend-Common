@@ -1,4 +1,5 @@
 import logging
+import os
 
 import sentry_sdk
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
@@ -17,10 +18,13 @@ sentry_logging = LoggingIntegration(
 )
 
 
-def configure_sentry(sentry_sdn_url, logger: logging.Logger):
-    logger.debug("Configuring sentry...")
+def configure_sentry(sentry_dsn_url, logger: logging.Logger = None):
+    if logger:
+        logger.debug("Configuring sentry...")
+    environment = os.getenv("SENTRY_ENVIRONMENT", "development")
     sentry_sdk.init(
-        dsn=sentry_sdn_url,
+        dsn=sentry_dsn_url,
+        environment=environment,
         integrations=[
             AioHttpIntegration(),
             AtexitIntegration(),
@@ -31,6 +35,9 @@ def configure_sentry(sentry_sdn_url, logger: logging.Logger):
             StdlibIntegration(),
             sentry_logging,
         ],
-        # environment=ENV,
+        traces_sample_rate=0.2,
+        profiles_sample_rate=0.1,
+        send_default_pii=False,
+        enable_tracing=True,
         auto_enabling_integrations=False,
     )
