@@ -2,7 +2,6 @@ import logging
 import os
 
 import sentry_sdk
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.stdlib import StdlibIntegration
@@ -10,6 +9,12 @@ from sentry_sdk.integrations.excepthook import ExcepthookIntegration
 from sentry_sdk.integrations.dedupe import DedupeIntegration
 from sentry_sdk.integrations.atexit import AtexitIntegration
 from sentry_sdk.integrations.modules import ModulesIntegration
+
+try:
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    _has_sqlalchemy = True
+except Exception:
+    _has_sqlalchemy = False
 
 
 sentry_logging = LoggingIntegration(
@@ -22,19 +27,21 @@ def configure_sentry(sentry_dsn_url, logger: logging.Logger = None):
     if logger:
         logger.debug("Configuring sentry...")
     environment = os.getenv("SENTRY_ENVIRONMENT", "development")
+    integrations = [
+        AioHttpIntegration(),
+        AtexitIntegration(),
+        DedupeIntegration(),
+        ExcepthookIntegration(),
+        ModulesIntegration(),
+        StdlibIntegration(),
+        sentry_logging,
+    ]
+    if _has_sqlalchemy:
+        integrations.append(SqlalchemyIntegration())
     sentry_sdk.init(
         dsn=sentry_dsn_url,
         environment=environment,
-        integrations=[
-            AioHttpIntegration(),
-            AtexitIntegration(),
-            DedupeIntegration(),
-            ExcepthookIntegration(),
-            ModulesIntegration(),
-            SqlalchemyIntegration(),
-            StdlibIntegration(),
-            sentry_logging,
-        ],
+        integrations=integrations,
         traces_sample_rate=0.2,
         profiles_sample_rate=0.1,
         send_default_pii=False,
