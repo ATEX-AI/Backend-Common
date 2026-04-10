@@ -28,6 +28,7 @@ _IGNORED_ERROR_SUBSTRINGS = [
     "Connection.Close(reply_code=",       # RabbitMQ expected reconnection
     "Unexpected connection close from remote",  # aio_pika reconnect event
     "ConnectionResetError",               # TCP reset during restart
+    "> closed",                           # aio_pika Connection object closed
 ]
 
 
