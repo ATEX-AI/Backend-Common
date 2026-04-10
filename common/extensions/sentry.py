@@ -22,6 +22,35 @@ sentry_logging = LoggingIntegration(
     event_level=logging.ERROR,
 )
 
+# Transient errors that are expected during deployments / service restarts.
+# These are handled by reconnection logic and should not create Sentry issues.
+_IGNORED_ERROR_SUBSTRINGS = [
+    "Connection.Close(reply_code=",       # RabbitMQ expected reconnection
+    "Unexpected connection close from remote",  # aio_pika reconnect event
+    "ConnectionResetError",               # TCP reset during restart
+]
+
+
+def _before_send(event, hint):
+    """Filter out known transient/expected errors from Sentry."""
+    message = (event.get("logentry") or {}).get("message", "")
+    if not message:
+        message = event.get("message", "")
+
+    for pattern in _IGNORED_ERROR_SUBSTRINGS:
+        if pattern in message:
+            return None
+
+    # Also check exception values
+    exceptions = (event.get("exception") or {}).get("values", [])
+    for exc in exceptions:
+        exc_value = exc.get("value", "")
+        for pattern in _IGNORED_ERROR_SUBSTRINGS:
+            if pattern in exc_value:
+                return None
+
+    return event
+
 
 def configure_sentry(sentry_dsn_url, logger: logging.Logger = None):
     if logger:
@@ -47,4 +76,5 @@ def configure_sentry(sentry_dsn_url, logger: logging.Logger = None):
         send_default_pii=False,
         enable_tracing=True,
         auto_enabling_integrations=False,
+        before_send=_before_send,
     )
