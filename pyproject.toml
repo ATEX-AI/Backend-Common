@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "common"
-version = "0.0.36"
+version = "0.0.37"
 description = "Common utils for development in Atex llc"
 readme = "README.md"
 authors = [{ name = "1", email = "mail@atexai.uz" }]

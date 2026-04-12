@@ -29,6 +29,9 @@ _IGNORED_ERROR_SUBSTRINGS = [
     "Unexpected connection close from remote",  # aio_pika reconnect event
     "ConnectionResetError",               # TCP reset during restart
     "> closed",                           # aio_pika Connection object closed
+    "TelegramNetworkError",               # Telegram API transient network issues
+    "Connection reset by peer",           # TCP reset from external APIs
+    "Task was destroyed but it is pending",  # asyncio task cleanup on shutdown
 ]
 
 
