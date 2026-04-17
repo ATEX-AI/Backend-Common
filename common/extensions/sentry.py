@@ -34,9 +34,30 @@ _IGNORED_ERROR_SUBSTRINGS = [
     "Task was destroyed but it is pending",  # asyncio task cleanup on shutdown
 ]
 
+# PII/secret field names that should be redacted before sending to Sentry.
+# Defense-in-depth: even with send_default_pii=False, request bodies and
+# breadcrumb data can leak customer phone numbers, emails, chat messages, etc.
+_PII_FIELD_NAMES = frozenset({
+    "phone", "phone_number", "email", "first_name", "last_name", "full_name",
+    "password", "token", "access_token", "refresh_token", "api_key", "secret",
+    "message", "message_text", "text", "chat_content", "body",
+})
+
+
+def _scrub_pii(data):
+    """Recursively scrub known PII/secret fields from dict/list payloads."""
+    if isinstance(data, dict):
+        return {
+            k: ("[Filtered]" if str(k).lower() in _PII_FIELD_NAMES else _scrub_pii(v))
+            for k, v in data.items()
+        }
+    if isinstance(data, list):
+        return [_scrub_pii(v) for v in data]
+    return data
+
 
 def _before_send(event, hint):
-    """Filter out known transient/expected errors from Sentry."""
+    """Filter out known transient/expected errors + scrub PII from Sentry payloads."""
     message = (event.get("logentry") or {}).get("message", "")
     if not message:
         message = event.get("message", "")
@@ -52,6 +73,18 @@ def _before_send(event, hint):
         for pattern in _IGNORED_ERROR_SUBSTRINGS:
             if pattern in exc_value:
                 return None
+
+    # PII scrubbing (GDPR defense-in-depth)
+    request = event.get("request") or {}
+    if isinstance(request.get("data"), (dict, list)):
+        request["data"] = _scrub_pii(request["data"])
+    if isinstance(request.get("query_string"), (dict, list)):
+        request["query_string"] = _scrub_pii(request["query_string"])
+
+    breadcrumbs = (event.get("breadcrumbs") or {}).get("values") or []
+    for crumb in breadcrumbs:
+        if isinstance(crumb.get("data"), (dict, list)):
+            crumb["data"] = _scrub_pii(crumb["data"])
 
     return event
 
