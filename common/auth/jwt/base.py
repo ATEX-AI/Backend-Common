@@ -36,11 +36,16 @@ class JWTAuthentication(Authentication, ABC):
         self.get_public_key()
 
         try:
+            # Strict algorithm enforcement + required claims guard against
+            # "alg=none" and HS256-with-public-key forgery attacks.
             decoded_token = jwt.decode(
-                token, self.public_key, algorithms=self.algorithms
+                token,
+                self.public_key,
+                algorithms=self.algorithms,
+                options={"require": ["exp"], "verify_signature": True, "verify_exp": True},
             )
             return decoded_token
-        
+
         except jwt.ExpiredSignatureError:
             raise UnauthorizedAccess(message="Token has expired")
 
