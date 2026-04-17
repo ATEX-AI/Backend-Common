@@ -29,7 +29,8 @@ class ConnectionPool:
     """
 
     _instances: dict[str, "ConnectionPool"] = {}
-    _class_lock = asyncio.Lock()
+    _class_lock: asyncio.Lock | None = None
+    _class_lock_loop_id: int | None = None  # track which loop owns the lock
 
     def __init__(self, broker_host_url: str) -> None:
         self._broker_host_url = broker_host_url
@@ -41,21 +42,33 @@ class ConnectionPool:
     # ------------------------------------------------------------------
 
     @classmethod
+    def _ensure_class_lock(cls) -> asyncio.Lock:
+        """Create or recreate class lock if event loop changed."""
+        current_loop_id = id(asyncio.get_event_loop())
+        if cls._class_lock is None or cls._class_lock_loop_id != current_loop_id:
+            cls._class_lock = asyncio.Lock()
+            cls._class_lock_loop_id = current_loop_id
+            # Clear stale instances from previous loop
+            cls._instances.clear()
+        return cls._class_lock
+
+    @classmethod
     async def get_instance(cls, broker_host_url: str) -> "ConnectionPool":
         """
         Return the singleton pool for the given URL.
 
-        Because each seeder worker runs in its own process with its own
-        event loop, the class-level dict is process-local -- no cross-process
-        sharing issues.
+        Handles event loop changes (e.g. after process fork) by clearing
+        stale connections and recreating the lock.
         """
+        lock = cls._ensure_class_lock()
+
         # Fast path (no lock)
         pool = cls._instances.get(broker_host_url)
         if pool is not None:
             return pool
 
         # Slow path (with lock for first-time creation)
-        async with cls._class_lock:
+        async with lock:
             pool = cls._instances.get(broker_host_url)
             if pool is not None:
                 return pool
@@ -72,6 +85,14 @@ class ConnectionPool:
         async with self._lock:
             if self._connection is not None and not self._connection.is_closed:
                 return self._connection
+
+            # Close stale connection if exists
+            if self._connection is not None:
+                try:
+                    await self._connection.close()
+                except Exception:
+                    pass
+                self._connection = None
 
             logger.info(
                 "ConnectionPool: opening shared AMQP connection to %s",
