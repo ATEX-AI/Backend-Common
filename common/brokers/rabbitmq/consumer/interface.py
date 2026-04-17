@@ -10,6 +10,10 @@ from common.brokers.tasks.schema import Task
 
 class ConsumerBasicInterface:
     RECONNECT_DELAY = 3  # seconds
+    # Abort after this many consecutive connection failures so a
+    # misconfigured broker (wrong password, removed user) does not
+    # hide forever behind a silent reconnect loop.
+    MAX_CONSECUTIVE_CONNECT_FAILURES = 20
 
     def __init__(self, broker_host_url: str, queue_name: str, logger: logging.Logger, prefetch_count: int = 1):
         self._broker_host_url = broker_host_url
@@ -19,6 +23,7 @@ class ConsumerBasicInterface:
         self._queue: Queue | None = None
         self._stopped = False
         self._logger = logger
+        self._consecutive_connect_failures = 0
 
     @property
     def has_connection(self) -> bool:
@@ -55,11 +60,28 @@ class ConsumerBasicInterface:
                 self._queue = await self._channel.declare_queue(
                     self._queue_name, durable=True
                 )
+                # Successful connect — reset failure counter.
+                self._consecutive_connect_failures = 0
             except Exception as exc:
+                self._consecutive_connect_failures += 1
                 self._logger.warning(
-                    f"Error during {self._broker_host_url} connection: {exc}")
+                    "Error during %s connection (attempt %d/%d): %s",
+                    self._broker_host_url,
+                    self._consecutive_connect_failures,
+                    self.MAX_CONSECUTIVE_CONNECT_FAILURES,
+                    exc,
+                )
                 self._channel = None
                 self._queue = None
+                if self._consecutive_connect_failures >= self.MAX_CONSECUTIVE_CONNECT_FAILURES:
+                    self._logger.critical(
+                        "RabbitMQ consumer giving up on %s after %d failures. "
+                        "Check credentials/network; the consumer will stop.",
+                        self._broker_host_url,
+                        self._consecutive_connect_failures,
+                    )
+                    self._stopped = True
+                    return
                 await asyncio.sleep(self.RECONNECT_DELAY)
 
     async def get_messages(self):
